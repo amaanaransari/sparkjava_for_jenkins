@@ -1,25 +1,19 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'MAVEN_HOME'
-    }
     stages {
         stage('Build') {
             steps {
                 sh 'mvn clean package'
             }
         }
-        stage('SonarQube Code Check'){
-            environment{
-                scannerHome= tool 'sonarqube-scanner'
-            }
+
+        stage('SonarQube Scan') {
             steps {
-                withSonarQubeEnv('sonarqube-server'){
-                    sh '${scannerHome}/bin/sonar-scanner'
+                withSonarQubeEnv('sonarqube-server') {
+                    sh 'sonar-scanner'
                 }
             }
         }
     }
 }
-
