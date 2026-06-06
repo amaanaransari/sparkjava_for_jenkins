@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven3'
+    }
+
     stages {
         stage('Build') {
             steps {
@@ -8,7 +12,7 @@ pipeline {
             }
         }
 
-        stage('SonarQube Scan') {
+        stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-server') {
                     sh 'sonar-scanner'
