@@ -5,19 +5,21 @@ pipeline {
         maven 'MAVEN_HOME'
     }
     stages {
-        stage('Debug') {
-            steps {
-                sh 'whoami'
-                sh 'echo $PATH'
-                sh 'which mvn'
-                sh 'mvn -version'
-            }
-        }
-
         stage('Build') {
             steps {
                 sh 'mvn clean package'
             }
         }
+        stage('SonarQube Code Check'){
+            environment{
+                scannerHome= tool 'sonarqube-scanner'
+            }
+            steps {
+                withSonarQubeEnv('sonarqube-server'){
+                    sh '${scannerHome}/bin/sonar-scanner'
+                }
+            }
+        }
     }
 }
+
