@@ -25,7 +25,7 @@ pipeline {
 
                     def server = Artifactory.newServer(
                         url: registry + "/artifactory",
-                        credentialsId: "artifact-cred"
+                        credentialsId: "jfrog-cred"
                     )
 
                     def properties = "buildid=${env.BUILD_ID},commitid=${env.GIT_COMMIT}"
@@ -34,7 +34,7 @@ pipeline {
                         "files": [
                             {
                                 "pattern": "target/*.jar",
-                                "target": "sai-libs-release-local/",
+                                "target": "amaan-libs-release-local/",
                                 "flat": "false",
                                 "props": "${properties}",
                                 "exclusions": ["*.sha1","*.md5"]
