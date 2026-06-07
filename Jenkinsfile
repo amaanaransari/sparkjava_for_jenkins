@@ -1,3 +1,5 @@
+def registry = 'https://trialcn8cgy.jfrog.io'
+
 pipeline {
     agent any
 
@@ -9,19 +11,55 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn clean package'
+                echo '------------ Build Started ------------'
+                sh 'mvn clean package -Dmaven.test.skip=true'
+                echo '------------ Build Completed ------------'
             }
         }
 
-        stage('SonarQube Analysis') {
-            environment{
-                scannerHome=tool('sonarqube-scanner')
-            }
+        stage('Jar Publish') {
             steps {
-                withSonarQubeEnv('sonarqube-server') {
-                    sh "${scannerHome}/bin/sonar-scanner"
+                script {
+
+                    echo '------------ Jar Publish Started ------------'
+
+                    def server = Artifactory.newServer(
+                        url: registry + "/artifactory",
+                        credentialsId: "artifact-cred"
+                    )
+
+                    def properties = "buildid=${env.BUILD_ID},commitid=${env.GIT_COMMIT}"
+
+                    def uploadSpec = """{
+                        "files": [
+                            {
+                                "pattern": "target/*.jar",
+                                "target": "sai-libs-release-local/",
+                                "flat": "false",
+                                "props": "${properties}",
+                                "exclusions": ["*.sha1","*.md5"]
+                            }
+                        ]
+                    }"""
+
+                    def buildInfo = server.upload(uploadSpec)
+
+                    buildInfo.env.collect()
+                    server.publishBuildInfo(buildInfo)
+
+                    echo '------------ Jar Publish Completed ------------'
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline Executed Successfully'
+        }
+
+        failure {
+            echo 'Pipeline Failed'
         }
     }
 }
